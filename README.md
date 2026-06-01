@@ -11,6 +11,7 @@
 ## 구조
 - README.md : 이 파일
 - troubleshooting/telegram-bot.md : 진단·해결 런북 (재사용용 플레이북)
+- troubleshooting/multi-room-setup.md : 다중 방(뉴스·드라마·영화) 개설 런북
 - memory/YYYY-MM-DD.md : 날짜별 기억 (실수·성공 로그)
 
 ## 사용 방식
