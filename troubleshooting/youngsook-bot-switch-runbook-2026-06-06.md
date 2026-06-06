@@ -33,6 +33,18 @@
 - ⚠️ 우선순위: **주식(영숙방)이 최우선**(마스터 지시). 뉴스 분리는 그다음.
 - 필요물: 신규 뉴스봇 토큰(BotFather), 비서 영숙 토큰, 각 방 chat_id (전부 🔒 서버 .env에만).
 
+## 0-3. ✅ 뉴스방 전용 리스너 제작 완료 (2026-06-06)
+
+영숙(secretary_listener)과 동일 패턴으로 뉴스방 전용 리스너 제작·전달.
+- **`news_listener.py`** — `import youngsook_listener as base` 재사용. 뉴스봇 토큰 + 뉴스방 chat_id만 보고, 상태파일(`news_telegram_state.json`) 따로, 뉴스방 외 무시, "무조건 답하기" 포함. 본체 미수정.
+- 설정: `news_private.json`(우선) 또는 `.env`의 `NEWS_BOT_TOKEN`/`NEWS_ROOM_CHAT_ID`.
+- `news_private.json.example` 템플릿 동봉. py_compile 통과.
+- **마스터 필요물:** BotFather로 뉴스 전용 봇 신규 발급 → 토큰 + 뉴스방 chat_id 채우기.
+- ⚠️ **배포 시 주의:**
+  1. 뉴스방은 현재 **Irsar_bot(youngsook_listener)이 담당** → 뉴스 전용 봇을 띄우면 **Irsar_bot 쪽에서 뉴스방 chat_id를 제거**해야 이중 응답 안 남. (본체의 chat_id 게이트/설정에서 뉴스방 제외)
+  2. 뉴스 전용 봇 **Group Privacy OFF + 뉴스방 관리자** 지정.
+  3. **두 클로드 동시 작업 충돌 주의** — comodo 클로드가 영숙 작업 중이면, 뉴스 배포는 영숙 끝난 뒤 순차로.
+
 ## 1. 진단 과정 (증상 → 원인, 시간순)
 
 ### 1차 — "주식 안 써짐"으로 출발
