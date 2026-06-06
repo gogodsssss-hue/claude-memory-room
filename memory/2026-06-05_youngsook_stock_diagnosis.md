@@ -107,6 +107,33 @@
 - `room_pipeline.py` 미수령 → 3번(가로채기) 확정 불가.
 - 진짜로 손보려면: (A) `comodo-ingong` 레포에서 새 세션 열기 또는 (B) 폴더 통째 업로드 + 서버 기동 로그.
 
+## 3차 — 결정적 단서: "로봇방은 되는데 영숙방만 무응답" (2026-06-06)
+
+마스터: "왜 영숙방이 아니라 로봇방에서 대화가 되지?" → **봇이 죽은 게 아님(로봇방은 정상).** 영숙방만 침묵.
+이로써 원인이 **방(room) 단위 문제**로 확정. 두 갈래:
+
+### (B) chat_id 허용목록 문제 — youngsook_listener.py 1314번 줄
+```python
+if str(sender_id) != str(chat_id) and str(sender_id) not in {"-5012814805"}:
+    → 외부접근 취급 → continue (무응답, 보안로그만)
+```
+- 영숙이는 **설정값 `TELEGRAM_CHAT_ID`(=로봇방) + 하드코딩 `-5012814805`** 딱 두 방에서만 응답.
+- **영숙방 chat_id가 이 명단에 없으면 → 영숙방 전체 침묵.** ← 로봇방만 되는 현상과 정확히 일치.
+- ⚠️ 이 게이트는 multi-room-setup.md STEP4("회신은 명령 온 방으로, 고정 chat_id 하드코딩 금지")와 **모순.** 게이트가 room_pipeline보다 먼저 돌아 다른 방을 다 막음. (각 방이 별도 리스너 프로세스로 도는 구조면 영숙이는 로봇방 전용으로 묶인 것.)
+
+### (A) 잘못된 봇 문제 — multi-room-setup.md 13번
+- 코드가 쓰는 봇 = **@Irsar_bot**. 비서 영숙 봇 = **@irir4r_secretary_bot** (별개).
+- 영숙방에 들어간 봇이 @Irsar_bot이 아니면(예: @irir4r_secretary_bot) → 코드가 영숙방 메시지를 **아예 수신 못 함** → 침묵.
+
+### (A)/(B) 가르는 법 (서버 콘솔)
+영숙방에 글 보내고 콘솔 확인:
+- `[DEBUG chat_id] 수신 chat_id=...` **뜸** → (B). 그 chat_id를 .env/허용목록에 등록하면 끝.
+- **안 뜸** → (A). 영숙방에 코드봇(@Irsar_bot) 초대 + privacy off/관리자.
+
+### 고치는 법 (둘 다 서버·설정 작업, 이 세션에선 불가)
+- (B): 영숙방 chat_id를 `.env`(방별 변수) 또는 1314번 허용 set에 추가. *단 게이트 설계 자체가 multi-room과 충돌 → room_pipeline 구조 같이 봐야 정답.*
+- (A): 영숙방에 @Irsar_bot 초대 → getUpdates로 chat_id 잡기(런북 STEP2) → 등록.
+
 ## 메모
 
 - 영숙이 코드는 비공개 레포(`comodo-ingong`)에 있고, 프로젝트 루트는 `/home/master/comodo-ingong` (하드코딩 경로로 확인).
