@@ -85,6 +85,21 @@
 
 ---
 
+## 3-1. ✅ 영숙방 전용 리스너 제작 완료 (2026-06-06)
+
+본체를 복사·중복하지 않고 **재사용하는 얇은 래퍼**로 제작·전달함. 본체(`youngsook_listener.py`)는 미수정 → Irsar_bot/뉴스방 안전.
+
+- **`secretary_listener.py`** — `import youngsook_listener as base`로 본체 처리로직(주빵이/미미/검색/일반대화) 전부 재사용. 차이점만:
+  - 설정: `secretary_private.json`(우선) 또는 `.env`의 `SECRETARY_BOT_TOKEN`/`SECRETARY_ROOM_CHAT_ID` → 비서 영숙 토큰 + 영숙방 chat_id.
+  - 상태파일: `secretary_telegram_state.json` 따로 → 본체 `telegram_state.json`과 offset 충돌 없음.
+  - chat_id 게이트: **영숙방만 허용**(본체의 하드코딩 `-5012814805` 제거).
+  - room_pipeline 우회 → 영숙방 메시지는 곧장 `process_message`로.
+  - 본체와 **같은 폴더**에 설치(juppang/페르소나 상대경로 그대로 맞음).
+- **`secretary_private.json.example`** — 토큰·방번호 빈칸 템플릿(🔒 실토큰은 서버에서만 채움).
+- **`설치방법.md`** — 단계별 설치/실행/점검 안내.
+- 검증: `python3 -m py_compile` 문법 통과. (런타임은 서버 배포 후 — base가 requests/dotenv/juppang import하므로 이 세션선 실행 테스트 불가.)
+- 마스터 할 일: 두 파일 본체 폴더에 넣기 → `secretary_private.json` 토큰·chat_id 채우기 → 비서영숙 봇 영숙방 관리자 지정 → `python3 secretary_listener.py` 실행 → `주빵 삼성전자` 테스트.
+
 ## 3. 전환 절차 — 전용 리스너 분리 방식 (영숙이 스크립트가 뉴스방 등 여러 방을 담당할 때)
 
 > 드라마봇 분리(drama_listener.py)와 동일 패턴. 기존 youngsook_listener는 건드리지 않고 영숙방만 떼어냄.
