@@ -50,7 +50,40 @@ def naver_news_search(query, display=8, sort='date'):
         })
     return out
 ```
-- 수집 우선순위: `naver_news_search()` → (0건) `google_news_search()` → (0건) `tavily_search()`.
+- 수집 우선순위: `naver_news_search()` → (0건) `kakao_web_search()` → (0건) `google_news_search()` → (0건) `tavily_search()`.
+
+### 뉴스 소스 전략 (2026-06-06 추가)
+- **1순위 네이버**(한국뉴스 최강) → **2순위 카카오(다음) 웹검색 + 뉴스도메인 필터** → 3순위 구글RSS → 4순위 Tavily.
+- 더 넓히려면(선택) 빅카인스(여러 언론사 통합) 신청 후 추가.
+- 속도: 여러 소스는 **병렬 호출** 권장(coverage↑, 지연 최소화).
+- 🔒 키는 서버 .env에만: `NAVER_CLIENT_ID/SECRET`, `KAKAO_REST_API_KEY`.
+
+### kakao_web_search() 참고 코드 (다음 검색 — 뉴스 전용 아님, 웹검색→뉴스도메인 필터)
+```python
+import os, json, urllib.request, urllib.parse
+def kakao_web_search(query, size=10):
+    key = os.getenv('KAKAO_REST_API_KEY')
+    if not key:
+        return []
+    q = urllib.parse.quote(query)
+    try:
+        req = urllib.request.Request(
+            f'https://dapi.kakao.com/v2/search/web?query={q}&sort=recency&size={size}',
+            headers={'Authorization': f'KakaoAK {key}'})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            docs = json.loads(r.read()).get('documents', [])
+    except Exception as e:
+        print('[kakao] error:', e, flush=True); return []
+    news_domains = ('news.', 'yna.co.kr', 'chosun', 'donga', 'hani', 'khan',
+                    'mk.co.kr', 'mt.co.kr', 'sedaily', 'edaily', 'newsis', 'ytn', 'v.daum.net')
+    out = []
+    for d in docs:
+        url = d.get('url', '')
+        if any(nd in url for nd in news_domains):
+            out.append({'title': d.get('title', ''), 'url': url, 'snippet': d.get('contents', '')})
+    return out
+```
+- 카카오 검색 API는 **REST API 키만으로 호출**(신청·활성화 불필요). 엔드포인트 `https://dapi.kakao.com/v2/search/web`, 헤더 `Authorization: KakaoAK {키}`.
 
 ## 4. 대화형 흐름 (뉴스방 전용 리스너 기준)
 1. 사용자: 주제 입력 (예: "삼성전자 신제품", 또는 "오늘 뭐 쓸까")
